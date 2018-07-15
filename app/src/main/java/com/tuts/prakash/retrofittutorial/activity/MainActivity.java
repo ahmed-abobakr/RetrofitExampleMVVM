@@ -12,18 +12,26 @@ import com.tuts.prakash.retrofittutorial.adapter.CustomAdapter;
 import com.tuts.prakash.retrofittutorial.model.RetroPhoto;
 import com.tuts.prakash.retrofittutorial.network.GetDataService;
 import com.tuts.prakash.retrofittutorial.network.RetrofitClientInstance;
+import com.tuts.prakash.retrofittutorial.viewModel.MainViewModel;
+import com.tuts.prakash.retrofittutorial.viewModel.impl.MainViewModelImpl;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.Observer;
+import rx.Scheduler;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
     private CustomAdapter adapter;
     private RecyclerView recyclerView;
     ProgressDialog progressDoalog;
+
+    MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,10 +42,34 @@ public class MainActivity extends AppCompatActivity {
         progressDoalog.setMessage("Loading....");
         progressDoalog.show();
 
-        /*Create handle for the RetrofitInstance interface*/
-        GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
 
-        Call<List<RetroPhoto>> call = service.getAllPhotos();
+        viewModel = new MainViewModelImpl();
+
+        viewModel.getAllPhotos()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<RetroPhoto>>() {
+                    @Override
+                    public void onCompleted() {
+                        progressDoalog.dismiss();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        progressDoalog.dismiss();
+                        Toast.makeText(MainActivity.this, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onNext(List<RetroPhoto> retroPhotos) {
+                        generateDataList(retroPhotos);
+                    }
+                });
+
+        /*Create handle for the RetrofitInstance interface*/
+        //GetDataService service = RetrofitClientInstance.getRetrofitInstance().create(GetDataService.class);
+
+        /*Call<List<RetroPhoto>> call = service.getAllPhotos();
         call.enqueue(new Callback<List<RetroPhoto>>() {
 
             @Override
@@ -51,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 progressDoalog.dismiss();
                 Toast.makeText(MainActivity.this, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
             }
-        });
+        });*/
     }
 
     /*Method to generate List of data using RecyclerView with custom adapter*/

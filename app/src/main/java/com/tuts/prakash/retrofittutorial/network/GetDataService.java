@@ -6,6 +6,7 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import rx.Observable;
 
 /**
  * Created by praka on 12/24/2017.
@@ -14,5 +15,5 @@ import retrofit2.http.GET;
 public interface GetDataService {
 
     @GET("/photos")
-    Call<List<RetroPhoto>> getAllPhotos();
+    Observable<List<RetroPhoto>> getAllPhotos();
 }
